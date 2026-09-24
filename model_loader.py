@@ -1,19 +1,24 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from typing import Optional
+from transformers import pipeline
 
-model_instance: Optional[dict] = None
+model_instance = None
 
 def load_model():
-    print("🔄 Загрузка модели в память...")
-    return {"name": "test_nlp_model", "status": "loaded", "version": "1.0"}
+    print("🔄 Загрузка HuggingFace модели...")
+    model = pipeline(
+        "sentiment-analysis",
+        model="blanchefort/rubert-base-cased-sentiment-rusentiment"
+    )
+    print("✅ Модель загружена")
+    return model
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model_instance
-    print("🚀 Запуск приложения, загружаем модель...")
+    print("🚀 STARTUP: Загружаем модель...")
     model_instance = load_model()
-    print(f"✅ Модель загружена: {model_instance}")
+    print(f"✅ STARTUP: Модель загружена: {model_instance is not None}")
     yield
-    print("🛑 Остановка приложения...")
+    print("🛑 SHUTDOWN: Остановка...")
     model_instance = None
